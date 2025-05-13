@@ -1,11 +1,12 @@
+import sys
 import pygame
 from constants import *
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
+from shot import Shot
 
 def main():
-    print("Starting Asteroids!")
     print("""
 
 ____ ___ ____ ____ ___ _ _  _ ____       
@@ -18,21 +19,23 @@ ____ ____ ___ ____ ____ ____ _ ___  ____
 
 """)
 
-    print("Screen width:", SCREEN_WIDTH)
-    print("Screen height:", SCREEN_HEIGHT)
-
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     dt = 0
+
+    #groups
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
+    # add groups to classes
     Player.containers = (updatable, drawable)
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     Asteroid.containers = (updatable, drawable, asteroids)
     Asteroid.containers = (updatable, drawable, asteroids)
     AsteroidField.containers = (updatable,)
+    Shot.containers = (shots, updatable, drawable)
+    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     field = AsteroidField()
 
     while True:
@@ -42,7 +45,21 @@ ____ ____ ___ ____ ____ ____ _ ___  ____
         screen.fill("black")
         for obj in drawable:
             obj.draw(screen)
+
+        # update
         updatable.update(dt)
+
+        for each in asteroids:
+            if each.isColliding(player):
+                print("Game over!")
+                sys.exit(1)
+
+            for shot in shots:
+                if shot.isColliding(each):
+                    shot.kill()
+                    each.split()
+
+
         pygame.display.flip()
         dt = clock.tick(60) / 1000
 
